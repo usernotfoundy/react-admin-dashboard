@@ -1,21 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar";
 import { Box, IconButton, Typography, useTheme } from "@mui/material";
 import { Link } from "react-router-dom";
 import "react-pro-sidebar/dist/css/styles.css";
 import { tokens } from "../../theme";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
-import PeopleOutlinedIcon from "@mui/icons-material/PeopleOutlined";
-import ContactsOutlinedIcon from "@mui/icons-material/ContactsOutlined";
-import ReceiptOutlinedIcon from "@mui/icons-material/ReceiptOutlined";
-import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
+import GroupIcon from '@mui/icons-material/Group';
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
-import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
-import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
-import PieChartOutlineOutlinedIcon from "@mui/icons-material/PieChartOutlineOutlined";
-import TimelineOutlinedIcon from "@mui/icons-material/TimelineOutlined";
+import StarRoundedIcon from '@mui/icons-material/StarRounded';
+import FactCheckRoundedIcon from '@mui/icons-material/FactCheckRounded';
+import AdminPanelSettingsRoundedIcon from '@mui/icons-material/AdminPanelSettingsRounded';
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
-import MapOutlinedIcon from "@mui/icons-material/MapOutlined";
+import TableViewIcon from '@mui/icons-material/TableView';
+import axios from 'axios'
+// import { useLocation } from 'react-router-dom';
+
+// import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
+// import PeopleOutlinedIcon from "@mui/icons-material/PeopleOutlined";
+// import ContactsOutlinedIcon from "@mui/icons-material/ContactsOutlined";
+// import ReceiptOutlinedIcon from "@mui/icons-material/ReceiptOutlined";
+// import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
+// import PieChartOutlineOutlinedIcon from "@mui/icons-material/PieChartOutlineOutlined";
+// import MapOutlinedIcon from "@mui/icons-material/MapOutlined";
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
   const theme = useTheme();
@@ -34,13 +40,49 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
     </MenuItem>
   );
 };
+const VIEW_PROFILE_API_URL = 'http://127.0.0.1:8000/view-profile/';
 
-const Sidebar = () => {
+const Sidebar = ({ token }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selected, setSelected] = useState("Dashboard");
+  const [img, setImg] = useState('');
+  const [username, setUsername] = useState('E-Man Well');
+  const [name, setName] = useState('E-Man WEll');
+  const [profile, setProfile] = useState([]);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(VIEW_PROFILE_API_URL, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        setImg(response.data.profile_img);
+        setUsername(response.data.email);
+        setName(response.data.username);
+        setProfile(response.data)
+        // console.log(response.data)
+      } catch (err) {
+        console.error('Failed to view profile information', err);
+        alert('Failed to view profile information');
+      }
+    };
+
+    if (token) {
+      fetchData();
+    } else {
+      alert('You are not logged in!')
+    }
+  }, [token]);
+
+  // if (location.pathname === '/') {
+  //   window.location.reload();
+  // }
+  // console.log('img url', img)
   return (
     <Box
       sx={{
@@ -80,7 +122,7 @@ const Sidebar = () => {
                 ml="15px"
               >
                 <Typography variant="h3" color={colors.grey[100]}>
-                  ADMINIS
+                  ADMIN
                 </Typography>
                 <IconButton onClick={() => setIsCollapsed(!isCollapsed)}>
                   <MenuOutlinedIcon />
@@ -96,7 +138,8 @@ const Sidebar = () => {
                   alt="profile-user"
                   width="100px"
                   height="100px"
-                  src={`../../assets/user.png`}
+                  // src={`../../assets/user.png`}
+                  src={img ? `${img}` : `../../assets/user.png`}
                   style={{ cursor: "pointer", borderRadius: "50%" }}
                 />
               </Box>
@@ -107,10 +150,12 @@ const Sidebar = () => {
                   fontWeight="bold"
                   sx={{ m: "10px 0 0 0" }}
                 >
-                  Ed Roh
+                  {/* E-Man Well */}
+                  {name}
                 </Typography>
                 <Typography variant="h5" color={colors.greenAccent[500]}>
-                  VP Fancy Admin
+                  {/* Admin/Project Champion */}
+                  {username}
                 </Typography>
               </Box>
             </Box>
@@ -132,89 +177,71 @@ const Sidebar = () => {
             >
               Data
             </Typography>
-            <Item
+            {/* <Item
               title="Manage Team"
               to="/team"
               icon={<PeopleOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
-            />
+            /> */}
             <Item
-              title="Contacts Information"
+              title="Manage Users"
               to="/contacts"
-              icon={<ContactsOutlinedIcon />}
+              icon={<GroupIcon />}
               selected={selected}
               setSelected={setSelected}
             />
+            {profile.is_superuser && (
+              <Item
+                title="Ratings and Feedbacks"
+                to="/feedbacks"
+                icon={<StarRoundedIcon />}
+                selected={selected}
+                setSelected={setSelected}
+              />
+            )}
             <Item
+              title="Verifications"
+              to="/verify"
+              icon={<FactCheckRoundedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+            {/* <Item
               title="Invoices Balances"
               to="/invoices"
               icon={<ReceiptOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
-            />
+            /> */}
 
             <Typography
               variant="h6"
               color={colors.grey[300]}
               sx={{ m: "15px 0 5px 20px" }}
             >
-              Pages
+              Forms
             </Typography>
             <Item
-              title="Profile Form"
+              title="Donation Form"
               to="/form"
-              icon={<PersonOutlinedIcon />}
+              icon={<TableViewIcon />}
               selected={selected}
               setSelected={setSelected}
             />
+            {profile.is_superuser && (
+              <Item
+                title="Create Admin"
+                to="/create-admin"
+                icon={<AdminPanelSettingsRoundedIcon />}
+                selected={selected}
+                setSelected={setSelected}
+              />
+            )}
             <Item
-              title="Calendar"
+              title="Announcement"
               to="/calendar"
               icon={<CalendarTodayOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item
-              title="FAQ Page"
-              to="/faq"
-              icon={<HelpOutlineOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-
-            <Typography
-              variant="h6"
-              color={colors.grey[300]}
-              sx={{ m: "15px 0 5px 20px" }}
-            >
-              Charts
-            </Typography>
-            <Item
-              title="Bar Chart"
-              to="/bar"
-              icon={<BarChartOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item
-              title="Pie Chart"
-              to="/pie"
-              icon={<PieChartOutlineOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item
-              title="Line Chart"
-              to="/line"
-              icon={<TimelineOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item
-              title="Geography Chart"
-              to="/geography"
-              icon={<MapOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
